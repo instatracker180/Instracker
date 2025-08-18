@@ -1,40 +1,43 @@
-    name: Instagram Follower Tracker
+name: Instagram Follower Tracker
 
-    on:
-      schedule:
-        # This schedule runs the script every 5 minutes
-        - cron: '*/5 * * * *'
-      workflow_dispatch: # This allows you to run it manually from the "Actions" tab
+on:
+  schedule:
+    # This schedule runs the script every 5 minutes
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # This allows you to run it manually from the "Actions" tab
 
-    jobs:
-      track:
-        runs-on: ubuntu-latest
-        steps:
-          - name: Checkout repository
-            uses: actions/checkout@v4
+# Add this permissions block to allow the workflow to write back to the repo
+permissions:
+  contents: write
 
-          - name: Set up Python
-            uses: actions/setup-python@v5
-            with:
-              python-version: '3.10'
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-          - name: Install dependencies
-            run: pip install -r requirements.txt
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
-          - name: Run the tracker script
-            env:
-              BOT_USERNAME: ${{ secrets.BOT_USERNAME }}
-              BOT_PASSWORD: ${{ secrets.BOT_PASSWORD }}
-              SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
-              SENDER_PASSWORD: ${{ secrets.SENDER_PASSWORD }}
-              RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
-            run: python tracker.py
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-          - name: Commit and push changes
-            run: |
-              git config --global user.name 'github-actions[bot]'
-              git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-              git add *.txt *.session
-              git commit -m "Update follower counts and session file" || echo "No changes to commit"
-              git push
-    
+      - name: Run the tracker script
+        env:
+          BOT_USERNAME: ${{ secrets.BOT_USERNAME }}
+          BOT_PASSWORD: ${{ secrets.BOT_PASSWORD }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          SENDER_PASSWORD: ${{ secrets.SENDER_PASSWORD }}
+          RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
+        run: python tracker.py
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add *.txt *.session
+          git commit -m "Update follower counts and session file" || echo "No changes to commit"
+          git push
