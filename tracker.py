@@ -20,8 +20,7 @@ SENDER_PASSWORD = os.environ['SENDER_PASSWORD']
 RECEIVER_EMAIL = os.environ['RECEIVER_EMAIL']
 
 # Timing configuration (in seconds)
-CYCLE_DURATION = 300  # 5 minutes
-DELAY_BETWEEN_ACCOUNTS = 30
+DELAY_BETWEEN_ACCOUNTS = 30 # Delay is still used between checking accounts
 
 # --- END OF CONFIGURATION ---
 
@@ -98,30 +97,26 @@ def check_followers(loader):
 
     return changes_found
 
-# --- Main Loop ---
+# --- Main Execution Block (No While Loop) ---
 if __name__ == "__main__":
     L = instaloader.Instaloader()
     try:
         L.load_session_from_file(BOT_USERNAME, SESSION_FILE)
         print(f"✅ Session for '{BOT_USERNAME}' loaded successfully.")
     except FileNotFoundError:
-        print(f"❌ Error: Session file '{SESSION_FILE}' not found. Please run login.py first.")
-        # In a hosted environment, you might want to automatically run login.py
-        # For now, we exit to avoid errors.
-        exit()
+        # If the session file doesn't exist, run login.py to create it
+        print(f"❌ Session file not found. Running login.py to create a new one.")
+        # This requires BOT_PASSWORD to be available as a secret
+        os.system('python login.py')
+        # Load the newly created session
+        L.load_session_from_file(BOT_USERNAME, SESSION_FILE)
 
-    while True:
-        cycle_start_time = time.time()
-        
-        changes = check_followers(L)
-        
-        if changes:
-            send_summary_email(changes)
-        else:
-            print(" no changes.")
+    # Run the check once
+    changes = check_followers(L)
+    
+    if changes:
+        send_summary_email(changes)
+    else:
+        print("✅ No changes detected in this cycle.")
 
-        elapsed_time = time.time() - cycle_start_time
-        wait_time = max(0, CYCLE_DURATION - elapsed_time)
-        
-        print(f"\n✅ Cycle complete. Waiting for {int(wait_time)} seconds...")
-        time.sleep(wait_time)
+    print("\n✅ Script finished.")
